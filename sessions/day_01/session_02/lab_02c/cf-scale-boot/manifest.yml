@@ -1,0 +1,7 @@
+---
+applications:
+- name: cf-scale-boot
+  memory: 512M
+  instances: 1
+  host: cf-scale-boot-${random-word}
+  path: target/lab-02c-cf-scale-boot-0.0.1-SNAPSHOT.jar

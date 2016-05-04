@@ -1,0 +1,152 @@
+= Course Setup
+
+The following software is required to complete this course:
+
+  * Java JDK 8
+  * An IDE or Editor of your choice
+  * Maven utility: `mvn`
+  * Cloud Foundry CLI `cf`
+  * Curl (Windows users only)
+  * Optional: Browser plugins to view Asciidoc and JSON Data (Chrome or Firefox only)
+ 
+Ideally this setup should be completed _before_ you attend the course.
+
+== Note on Lab Usage
+
+Much of this course involves using command line tools rather than GUI
+applications.  This may be unfamiliar to some of you.
+
+In particular, Windows users will need to open and use Command windows. To do this
+press `WK` + `R` and type `cmd` (where WK is the Windows Key).
+
+To keep the labs simple, although we encourage you to use an IDE, we only use it
+for creating and editing files.  In most cases we build using `mvn` directly.
+We accept that this is not typical but it makes the lab instructions simpler.
+
+
+== Java
+
+A Java 8 JDK needs to be installed.  Go to Oracle at
+http://www.oracle.com/technetwork/java/javase/downloads/index.html
+and click the Java download button on the right.  You should be on the page to
+download the "Java SE Development Kit".
+
+Click the radio-button to say you "Accept License Agreement" and then pick the
+right JDK for your platform.  Make sure you are downloading the JDK _not_ the JRE.
+
+Once downloaded, run the installer.  It takes a while to run.
+
+== IDE
+
+We recommend installing the integrated development environment of your choice,
+such as Eclipse, Spring Tool Suite (STS) or IntelliJ.  If you have no preference
+we recommend STS as it has additional support for the Spring facilities used during
+the course.
+
+ * STS: http://spring.io/tools  The download is a zip file, so unpack it somewhere
+convenient.  Windows users are recommended to unpack it directly into `C:\` otherwise
+you will have problems exceeding the maximum path length (yes even on Windows 8 and 10).
++
+Once unpacked you should find a directory similar to `sts_bundle/sts-X.X.X.RELEASE`
+or `sts_bundle/sts-X.X.X.RELEASE-eX.X.X` (the versions will differ).  In here is
+the executable for STS (`STS.exe`, `STS.app` or `STS`).  For convenience, you might
+like to create a shortcut on your Desktop.
+
+ * Eclipse: https://eclipse.org/downloads/  Either use the Installer or choose
+"Eclipse IDE for Java Developers ".
+ 
+ * IntelliJ: https://www.jetbrains.com/idea/download/  The Community Edition is free
+and will be sufficient for this course.
+
+An IDE is not required to do this course, but if you prefer not to use an IDE, you
+will need to use your favorite editor instead.  Windows users are recommended to
+download the free Notepad++s editor from https://notepad-plus-plus.org/download
+
+== Maven
+
+Download Maven from https://maven.apache.org/download.cgi - select the binary zip archive
+(Windows) or the binary tar.gz archive (MacOS, Linux).
+
+Once downloaded, unpack into a convenient directory.
+You need to add the `bin` directory to your execution path.
+
+* Windows - Right click `My Computer`/`This PC` -> `Properties` -> `Advanced system settings` -> `Environment variables` ...
+`PATH` should already exist, click `Edit` and add to the end.  Don't forget to add a semicolon first.
+For more details on how to do this see http://www.computerhope.com/issues/ch000549.htm.
+
+* MacOS, Linux - Assuming you are using a BASH shell, edit `~/.bashrc` and add:
++
+```
+PATH=$PATH:/path/to/maven/bin
+```
+
+You will need to close any existing Terminal/Cmd windows and open a new one for the change to take effect.
+
+== Cloud Foundry Command-Line Utility
+
+Go to https://github.com/cloudfoundry/cli/releases, download and run the right installer for your platform.
+
+== Curl for Windows
+
+Linux and MacOS users already have the `curl` utility.  Windows users can download it from here:
+https://github.com/S2EDU/PCFImmersionStudentFiles/raw/master/curl.zip.
+
+Once downloaded, unpack it somewhere convenient and add to your path - the same procedure as for
+Maven.
+
+== Add-on 1 - Lab Notes 
+
+The easiest way to view the lab intructions is to use your browser, but you will need a plugin (Firefox or Chrome only).
+
+  * *Firefox:*
+  ** Do an Internet search for `Asciidoctor Live Preview` and select "Asciidoctor.js Live Preview :: Add-ons for Firefox"
+  ** Click the "Add to Firefox" button to install the add-on.
+ 
+  * *Chrome:*
+  ** Do an Internet search for `Asciidoctor Live Preview` and select "Asciidoctor.js Live Preview - Chrome Web Store - Google"
+  ** Install
+  ** Check `Allow access to file URLs` in chrome://extensions
+
+Now you can drag Asciidoctor files (`.adoc`) files onto the browser to view them.
+
+== Optional Add-on 2 - View JSON Data
+
+Several labs use `curl` to send requests that return JSON data.  If you prefer to do this in your browser ...
+
+=== Firefox or Chrome
+
+. Do an Internet search for the "JSONView" add-on.
+. Install as directed
+. Once installed, try this JSON test page: http://jsonplaceholder.typicode.com/posts/1
+
+=== Internet Explorer
+
+. Create a file on your desktop called `json.reg`.
+. Right click and select edit.
+. Copy and paste the following:
++
+```
+Windows Registry Editor Version 5.00;
+; Tell IE 7,8,9,10,11 to open JSON documents in the browser on Windows XP and later.
+; 25336920-03F9-11cf-8FD0-00AA00686F13 is the CLSID for the "Browse in place" .
+;
+[HKEY_CLASSES_ROOT\MIME\Database\Content Type\application/json]
+"CLSID"="{25336920-03F9-11cf-8FD0-00AA00686F13}"
+"Encoding"=hex:08,00,00,00
+```
+. Save and close.
+. Double click on the `json.reg` to run it.  You will get a warning, click `Yes` to continue.
+. Now try this JSON test page: http://jsonplaceholder.typicode.com/posts/1
+. Delete `json.reg`
+
+== Testing Your Setup
+
+If everything has installed correctly, _open a brand new_ Terminal/Cmd window.  You should be able to run
+the following:
+
+```
+java -version
+mvn -version
+cf --version
+curl --version
+```

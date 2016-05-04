@@ -1,0 +1,4 @@
+server.port: 8080
+eureka.instance:
+  metadata-map.instanceId: p${server.port}
+  leaseRenewalIntervalInSeconds: 5

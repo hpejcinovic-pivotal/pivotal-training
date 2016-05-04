@@ -1,0 +1,120 @@
+:compat-mode:
+= Lab 07a - Client-Side Load Balancing with Ribbon
+
+Estimated time to complete: 30 minutes
+[abstract]
+--
+Let's continue learning the components found in Spring Cloud to implement patterns for distributed systems.
+We'll again use Spring Cloud Netflix to implement client-side load balancing with Ribbon.
+
+In this lab, we'll do the following:
+
+. Change the consumer application from link:../../session_06/lab_06b/lab_06b_discovery.adoc[Lab 06b] to:
+.. Use a `LoadBalancerClient`
+.. Use a `RestTemplate` configured to resolve service names from Ribbon
+. Test the new consumer versions against our local pool of producers
+. Try swapping out the Ribbon load balancing algorithm
+--
+
+NOTE: before starting this lab, you can stop all the applications you had started in the previous labs. You will not need them anymore.
+
+This lab uses 4 running applications. Here is a table that you can refer to during the lab.
+
+|=======
+|Eureka |http://localhost:8761
+|Producer 1 |http://localhost:8080
+|Producer 2 |http://localhost:8082 
+|Consumer|http://localhost:8091
+|=======
+
+
+
+== Setup
+
+. Four projects have been placed inside `$COURSE_HOME/day_02/session_07/lab_07a/initial/`. Import all of them inside your IDE of choice.
+
+. Eureka: Open `springtrader-eureka` and launch the class `SpringtraderEurekaApplication`
+
+. Connect to http://localhost:8761/ to confirm that Eureka has been started successfully. 
+
+. A completed `springtrader-producer` project has been placed in `$COURSE_HOME/day_02/session_07/lab_07a/initial/springtrader-producer` for your convenience.
+Change to that directory and build
++
+----
+cd $COURSE_HOME/day_02/session_07/lab_07a/initial/springtrader-producer
+mvn clean package
+----
+
+. Now run the producer twice (on different ports), each in a different terminal/command window:
++
+----
+Linux, MacOS:
+$ SERVER_PORT=8080 java -jar target/lab_07a-springtrader-producer-0.0.1-SNAPSHOT.jar
+$ SERVER_PORT=8082 java -Deureka.instance.metadataMap.instanceId=p8082 -jar target/lab_07a-springtrader-producer-0.0.1-SNAPSHOT.jar
+
+Windows:
+> set SERVER_PORT=8080
+> java -jar target/lab_07a-springtrader-producer-0.0.1-SNAPSHOT.jar
+> set SERVER_PORT=8082
+> java -Deureka.instance.metadataMap.instanceId=p8082 -jar target/lab_07a-springtrader-producer-0.0.1-SNAPSHOT.jar
+----
+
+. Ensure you have two instances of the producer service registered in Eureka on http://localhost:8761 :
++
+image::../../../Common/images/ribbon_1.png[]
+
+== Using the `LoadBalancerClient`
+
+. Inside your IDE, open the project `springtrader-consumer`
+
+. Where is Ribbon?
++
+You might be interested to know how your Ribbon Client has been included inside your project so it can be used by our Consumer. Inside your `pom.xml` file, you will find the following dependency:
+
++
+[source,xml]
+----
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-eureka</artifactId>
+</dependency> 
+----
+
+The `spring-cloud-starter-eureka` dependency transitively comes with the `Ribbon` libraries (you will find them in your list of `jar` files).
+
+
+. In `io.springtrader.consumer.ConsumerController`, include the `consume()` method as follows:
++
+[source,java]
+----
+@RequestMapping(value="/", produces="application/json")
+    public String consume() {
+                
+        ProducerResponse response = restTemplate.getForObject("http://producer", ProducerResponse.class);
+        return String.format("{\"server port\":%d, \"value\":%d}", response.getServerPort(), response.getValue());
+        
+    }
+----
+
+. Run your application by launching `SpringtraderConsumerApplication`. 
+
+. Connect to http://localhost:8091/ and access the consumer application several times. Per the round-robin algorithm, 50% if the requests should be served by producer 8080 (and the other half should go to producer 8082).
+
++
+[source,json]
+----
+{
+   "server port":8082,
+   "value":4
+}
+----
+
+== Failing one of the producers
+
+You now have a Load Balancer that works across 2 Producers. But what happens when one of the Producers fails? 
+
+. Stop one of the producers and try to access the consumer a few times. What can you notice?
+
+. In the next lab, you will learn how to use a `circuit breaker` so failures can be handled gracefully.
+
+

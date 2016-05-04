@@ -1,0 +1,12 @@
+---
+timeout: 90
+instances: 1
+memory: 512M
+env:
+    SPRING_PROFILES_ACTIVE: cloud
+    JAVA_OPTS: -Djava.security.egd=file:///dev/urandom
+applications:
+- name: portfolio
+  random-route: true
+  path: target/lab_05c-portfolio-solution-1.0.0-SNAPSHOT.jar
+  services: [ springtrader-portfolio-db ]

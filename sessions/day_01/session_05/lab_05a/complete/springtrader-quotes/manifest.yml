@@ -1,0 +1,11 @@
+timeout: 180
+instances: 1
+memory: 512M
+env:
+    SPRING_PROFILES_ACTIVE: cloud
+    JAVA_OPTS: -Djava.security.egd=file:///dev/urandom
+applications:
+- name: quotes
+  random-route: true
+  path: target/lab_05a-quotes-1.0.0-SNAPSHOT.jar
+  services: [ springtrader-quotes-db ]

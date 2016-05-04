@@ -1,0 +1,156 @@
+:compat-mode:
+= Lab 05b - Build Accounts Service with Mysql/H2
+
+Estimated time to complete: 30 minutes
+[abstract]
+--
+In this lab we'll begin the second subproject of our complete cloud-native application architecture: _SpringTrader_, which implements the quotes fetching portion of a ``Trading-like'' application.
+This microservice will provide the _Accounts Service_, which will allow us to create and browse user accounts.
+We'll be using a relational model to represent the user accounts.
+--
+
+NOTE: The completed code for this lab can be found at `$COURSE_HOME/day_01/session_05/lab_05b/complete/springtrader-accounts`.
+
+== Exploring springtrader-accounts
+
+. Change to the lab directory:
++
+----
+$ cd $COURSE_HOME/day_01/session_05/lab_05b/initial/springtrader-accounts
+----
++
+and import the project (via `pom.xml`) into your IDE of choice.
+
+. Explore the new `accounts` microservice:
+- How many domain classes do you now have? Are there relationships between those classes?
+- How many controller classes?
++
+As for `spring-trader-quotes`, You can see that static web files are not included in `springtrader-accounts`. They will all be contained in a `web` microservice (dedicated to the web layer)
+
+
+
+. Add the following to `application.yml` -- we'll eventually want to run multiple apps locally, so we are using a port that is different from 8080:
++
+----
+server.port: 8082
+
+security.basic.enabled: false
+spring.jpa:
+    database-platform: org.hibernate.dialect.MySQL5Dialect
+    hibernate.ddl-auto: create
+    
+----
+
+. To run the application locally you have to add H2 dependency to your `pom.xml` file.
++
+[source,xml]
+----
+<dependency>
+	<groupId>com.h2database</groupId>
+  	<artifactId>h2</artifactId>
+    <scope>runtime</scope>
+ </dependency>
+----
+
+. Open `src/main/resources/import.sql`. As seen previously, Spring Boot automatically loads this file at startup time (based on a naming convention). You will therefore have 2 accounts created by default at application startup time.
+
+. Run the application by launching `AccountsApplication` and open the url http://localhost:8082/account/1 into your web browser. You should see the following:
++
+[source,json]
+----
+{
+   "id":1,
+   "address":"45 Test Dr.",
+   "passwd":"123",
+   "userid":"johnsmith",
+   "email":"john@pivotal.io",
+   "creditcard":"999999999",
+   "fullname":"John Smith",
+   "authtoken":null,
+   "creationdate":null,
+   "openbalance":1200.50,
+   "logoutcount":0,
+   "balance":null,
+   "lastlogin":null,
+   "logincount":0
+}
+----
+
+== Preparing for Cloud Foundry
+
+. Create the MySQL service.
++
+----
+$ cf cs p-mysql 100mb-dev springtrader-accounts-db
+----
+NOTE: if you are using Pivotal Web Service, the above service is not available in the command line. You just need to create it using the Web console at https://console.run.pivotal.io . You can select a MySql database service and name it `springtrader-accounts-db`.
++
+. Rebuild the JAR:
++
+----
+$ mvn clean package
+----
+
+== Deploying to Cloud Foundry
+
+. Paste the following inside `manifest.yml`:
++
+[source,yml]
+----
+---
+timeout: 180
+instances: 1
+memory: 512M
+env:
+    SPRING_PROFILES_DEFAULT: cloud
+    JAVA_OPTS: -Djava.security.egd=file:///dev/urandom
+applications:
+- name: accounts
+  random-route: true
+  path: target/lab_05b-accounts-1.0.0-SNAPSHOT.jar
+  services: [ springtrader-accounts-db ]
+----
+
+. Push to Cloud Foundry:
++
+----
+$ cf push
+
+...
+
+Showing health and status for app accounts in org pivot-cqueiroz / space development as cqueiroz@pivotal.io...
+OK
+
+requested state: started
+instances: 1/1
+usage: 512M x 1 instances
+urls: accounts-unexploited-boneset.cfapps.io
+last uploaded: Mon Dec 7 21:01:55 UTC 2015
+stack: cflinuxfs2
+buildpack: java-buildpack=v3.3.1-offline-https://github.com/cloudfoundry/java-buildpack.git#063836b java-main java-opts open-jdk-like-jre=1.8.0_65 open-jdk-like-memory-calculator=2.0.0_RELEASE spring-auto-reconfiguration=1.10.0_RELEASE
+
+     state     since                    cpu    memory           disk           details
+#0   running   2015-12-07 06:02:51 PM   0.9%   456.4M of 512M   163.4M of 1G
+----
+
+. Access the application at the random route provided by CF (such as `http://accounts-unexploited-boneset.cfapps.io/account/1`). The output should be the same as when run locally:
++
+[source,json]
+----
+{
+   "id":1,
+   "address":"45 Test Dr.",
+   "passwd":"123",
+   "userid":"johnsmith",
+   "email":"john@pivotal.io",
+   "creditcard":"999999999",
+   "fullname":"John Smith",
+   "authtoken":null,
+   "creationdate":null,
+   "openbalance":1200.50,
+   "logoutcount":0,
+   "balance":null,
+   "lastlogin":null,
+   "logincount":0
+}
+----

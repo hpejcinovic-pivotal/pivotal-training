@@ -1,0 +1,223 @@
+:compat-mode:
+= Lab 05c - Build a Portfolio with MySQL
+
+Estimated time to complete: 30 minutes
+[abstract]
+--
+In this lab we'll begin the third subproject of our complete cloud-native application architecture: _SpringTrader_, which implements the quotes fetching portion of a ``Trading-like'' application.
+This microservice will provide the _Portfolio Service_, which will allow us to see our trading transactions and assets.
+
+--
+
+NOTE: The completed code for this lab can be found at `$COURSE_HOME/day_01/session_05/lab_05c/complete/springtrader-portfolio`.
+
+== Exploring springtrader-portfolio
+
+. Change to the lab directory:
++
+----
+$ cd $COURSE_HOME/day_01/session_05/lab_05c/initial/springtrader-portfolio
+----
++
+and import the project (via `pom.xml`) into your IDE of choice.
+
+. Explore the new `portfolio` microservice:
+- How many domain classes do you now have? Look are the relationship between `Portfolio`, `Holder`, `Order`
+- Open the class `PortfolioService`. See how it relies on the `quotes` and `accounts` microservices. As a consequence, the `portfolio` microservice won't work if the 2 other ones are not up and running.
+
+
+. Add the following to `application.yml`. As you can see, each of our microservices runs on a different port so they can all run on your local computer.
++
+[source,yml]
+----
+spring:
+  profiles.active: local
+  application:
+     name: portfolio
+
+spring.jpa.hibernate.ddl-auto: create
+
+---
+spring:
+  profiles: local
+
+server:
+  port: 8088
+
+quotes:
+  url: http://localhost:8086
+
+accounts:
+  url: http://localhost:8082
+
+---
+spring:
+  profiles: cloud
+
+spring.jpa.database-platform: org.hibernate.dialect.MySQL5Dialect
+
+quotes:
+  url: http://quotes-nonliteral-nautilus.cfapps.io
+
+accounts:
+  url: http://accounts-dormant-dewlap.cfapps.io
+----
+
+. Open `src/main/resources/import.sql`. As seen before, Spring Boot automatically loads this file at startup time. You will therefore have one order created at application startup time.
+
+. To run the application locally you have to add H2 dependency to your `pom.xml` file.
+
++
+[source,xml]
+----
+ <dependency>
+	<groupId>com.h2database</groupId>
+  	<artifactId>h2</artifactId>
+    <scope>runtime</scope>
+ </dependency>
+----
+
+. Make sure the `accounts` and `quotes` microservices are still running
+
+. Run the application and open the url http://localhost:8081/portfolio/johnsmith into your web browser. You should see the following:
++
+[source,json]
+----
+{
+	"accountId":"johnsmith",
+	"name":"JohnSmith",
+	"currentTotalValue":-255.4500000000000170530256582424044609069824218750,
+	"purchaseValue":0,
+	"sellValue":100.00,
+	"holdings":{
+		"EMC":{"id":null,
+				"symbol":"EMC",
+				"quantity":-10,
+				"purchaseValue":0,
+				"sellValue":100.00,
+			"orders":
+				[{
+					"orderId":1,
+					"accountId":"johnsmith",
+					"symbol":"EMC",
+					"orderFee":1.00,
+					"completionDate":1481468400000,
+					"orderType":"SELL",
+					"price":10.00,
+					"quantity":10
+					}],
+			"currentValue":25.5450000000000017053025658242404460906982421875
+			}
+	}
+}
+----
+
+== Preparing for Cloud Foundry
+
+
+. We want to bind to a MongoDB data source when running on Cloud Foundry, so let's create one:
++
+----
+$ cf cs p-mysql 100mb-dev springtrader-portfolio-db
+Creating service instance springtrader-portfolio-db in org pivot-cqueiroz / space development as cqueiroz@pivotal.io...
+OK
+----
+
+. Add the appropriate dependencies for the Spring Cloud Connectors:
++
+[source,xml]
+----
+<dependency>
+  <groupId>org.springframework.cloud</groupId>
+  <artifactId>spring-cloud-cloudfoundry-connector</artifactId>
+</dependency>
+<dependency>
+  <groupId>org.springframework.cloud</groupId>
+  <artifactId>spring-cloud-spring-service-connector</artifactId>
+</dependency>
+----
+
+. Build the JAR:
++
+----
+$ mvn clean package
+----
+
+== Deploying to Cloud Foundry
+
+. Create an application manifest in `manifest.yml`:
++
+[source,yml]
+----
+timeout: 180
+instances: 1
+memory: 512M
+env:
+    SPRING_PROFILES_ACTIVE: cloud
+    JAVA_OPTS: -Djava.security.egd=file:///dev/urandom
+applications:
+- name: portfolio
+  random-route: true
+  path: target/lab_05c-portfolio-1.0.0-SNAPSHOT.jar
+  services: [ springtrader-portfolio-db ]
+----
+. Before push to Cloud Foundry adjust the application.yml (cloud profile) file with the URLs for the Accounts and Quotes services. Something like:
++
+[source,yml]
+----
+spring:
+  profiles: cloud
+  jpa:
+     hibernate:
+        ddl-auto: create
+
+quotes:
+  url: http://quotes-undespising-lenition.cfapps.io
+
+accounts:
+  url: http://accounts-recompensatory-assassinator.cfapps.io
+----
+
+. Push to Cloud Foundry:
++
+----
+$ cf push
+
+...
+
+----
+
+. Access the application on http://portfolio<your-random-words>.cfapps.io/portfolio/johnsmith. You should see the following:
++
+[source,json]
+----
+{
+   "accountId":"johnsmith",
+   "name":"JohnSmith",
+   "currentTotalValue":255.4500000000000170530256582424044609069824218750,
+   "purchaseValue":100.00,
+   "sellValue":0,
+   "holdings":{
+      "EMC":{
+         "id":null,
+         "symbol":"EMC",
+         "quantity":10,
+         "purchaseValue":100.00,
+         "sellValue":0,
+         "orders":[
+            {
+               "orderId":1,
+               "accountId":"johndoe",
+               "symbol":"EMC",
+               "orderFee":1.00,
+               "completionDate":1329759342904,
+               "orderType":"BUY",
+               "price":10.00,
+               "quantity":10
+            }
+         ],
+         "currentValue":25.5450000000000017053025658242404460906982421875
+      }
+   }
+}
+----

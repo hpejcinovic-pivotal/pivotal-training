@@ -1,0 +1,13 @@
+---
+applications:
+- name: springtrader-monolith
+  host: springtrader-monolith
+  memory: 1G
+  instances: 1
+  timeout: 90
+  path: target/springtrader-monolith-1.0.0-SNAPSHOT.jar
+  env:
+    SPRING_PROFILES_ACTIVE: cloud
+  services:
+    - mysql-dev
+

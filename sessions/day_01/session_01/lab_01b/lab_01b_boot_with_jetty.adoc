@@ -1,0 +1,96 @@
+= Lab 1b - Deploying a Web Application with an Embedded Container
+
+Estimated time to complete: 15 minutes
+
+== Build and Run with Embedded Apache Tomcat
+
+Spring Boot embeds `Apache Tomcat` by default.
+
+NOTE: For this lab, you should keep working with the project that you have created in Lab 01a
+
+. Run the application by launching the `HelloSpringBootApplication` class from your IDE
++
+You should see the application start up an embedded Apache Tomcat server on port 8080:
++
+----
+s.b.c.e.t.TomcatEmbeddedServletContainer : Tomcat started on port(s): 8080 (http)
+i.p.s.hello.HelloSpringBootApplication   : Started HelloSpringBootApplication in 3.023 seconds (JVM running for 3.432)
+----
+
+. Visit the application in the browser (http://localhost:8080), and you should see the following:
++
+----
+Hello World!
+----
+
+
+== Hot reload with Spring Boot Devtools
+
+One of the coolest features of Spring Boot is that most of your code can hot redeploy (you do not have to restart your application for changes to be taken into account).
+
+. Open your `pom.xml` file and add the following dependency:
+
++
+----
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-devtools</artifactId>
+</dependency>
+----
+
+. Restart your application once
+
+. Inside `HelloSpringBootApplication`, replace the String "Hello World" with "Hello Wooooorld". You will see that the application redeploys the changes automatically. You just have to go to your browser and refresh so you can see the new value.
+
+NOTE: You still need a few seconds for Spring Boot to refresh your application. It takes 20-30% of the time that it would take to restart your application completely.
+
+
+== Build and Run with Embedded Eclipse Jetty
+
+Spring Boot also supports embedding a Jetty server.
+
+. Open `pom.xml` and replace the following:
++
+----
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+----
++
+with:
++
+----
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+    <exclusions>
+        <exclusion>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-jetty</artifactId>
+</dependency>
+----
+
+. Build and run the application
++
+You can run it within your Development environment or from the command line (same as earlier in this lab).
++
+You should see the application start up an embedded Jetty server on port 8080:
+----
+s.b.c.e.j.JettyEmbeddedServletContainer : Jetty started on port(s) 8080 (http/1.1)
+i.p.s.hello.HelloSpringBootApplication   : Started HelloSpringBootApplication in 3.671 seconds (JVM running for 4.079)
+----
+
+. Visit the application in the browser (http://localhost:8080), and you should see the following:
++
+----
+Hello World!
+----
+
+NOTE: Hot redeploy works with Jetty in the same way as it works for Tomcat

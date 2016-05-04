@@ -1,0 +1,7 @@
+---
+applications:
+- name: springtrader-config-server
+  host: springtrader-config-server-${random-word}
+  memory: 512M
+  instances: 1
+  path: target/springtrader-config-server-0.0.1-SNAPSHOT.jar

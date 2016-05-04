@@ -1,0 +1,25 @@
+spring:
+  profiles.active: local
+  application:
+     name: quotes
+
+security:
+  basic:
+    enabled: false
+
+expiration:
+  time: -1 # enable offline mode. no expiration.
+
+---
+spring:
+  profiles: local
+server:
+  port: 8086
+---
+spring:
+  profiles: cloud
+---
+api:
+ url:
+   company: http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input={name}
+   quote: http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol={symbol}

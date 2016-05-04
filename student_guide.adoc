@@ -1,0 +1,82 @@
+= Migrating a Monolith Application to Cloud Native
+
+This course is derived from Matt Stine's link:https://github.com/mstine/CloudNativeArchitectureClass[course].
+
+
+== Student Guide
+
+=== Schedule
+
+The lectures for this class are intentionally very light and are only intended to set the stage for the hands-on labs.
+The overwhelming majority of our time will be spent writing code directly!
+
+Approximate session times are as follows.  Lab times vary by group and may be different for your course.
+
+9:00 AM - 10:30 AM:: *Session 1:* _Spring Boot_
+10:30 AM - 10:45 AM:: Morning Break
+10:45 AM - 12:30 PM:: *Session 2:* _Cloud Foundry_
+12:30 PM - 01:30 PM:: Lunch
+01:30 PM - 03:00 PM:: *Session 6:* _Spring Cloud: Part 1 (Config Server and Eureka)_
+03:00 PM - 03:15 PM:: Afternon Break
+03:15 PM - 05:00 PM:: *Session 7:* _Spring Cloud: Part 2 (Ribbon and Hystrix)_
+
+=== Important Note on the Labs
+
+Much of this course involves using command line tools rather than GUI
+applications.  This may be unfamiliar to some of you.
+
+In particular, Windows users will need to open and use Command windows. To do this
+press `WK` + `R` and type `cmd` (where WK is the Windows Key).
+
+To keep the labs simple, although we encourage you to use an IDE, we only use it
+for creating and editing files.  In most cases we build using `mvn` directly.
+We accept that this is not typical but it makes the lab instructions simpler.
+
+=== Course Materials
+
+==== Setup
+
+** link:sessions/setup.adoc[Software Setup] for this course.
+
+==== MORNING
+
+* Session 1
+** link:sessions/day_01/session_01/lab_01a/lab_01a_boot_getting_started.adoc[Lab 01a - Getting Started with Spring Boot]
+** link:sessions/day_01/session_01/lab_01b/lab_01b_boot_with_jetty.adoc[Lab 01b - Deploying a Web Application with an Embedded Container]
+** link:sessions/day_01/session_01/lab_01c/lab_01c_boot_properties.adoc[Lab 01c - Externalizing Configuration with Spring Boot]
+** link:sessions/day_01/session_01/lab_01d/lab_01d_boot_actuator.adoc[Lab 01d - Introspection, Monitoring, and Metrics using Spring Boot Actuator]
+
+* Session 2
+** link:sessions/day_01/session_02/lab_02a/lab_02a_cf_push.adoc[Lab 02a - From Zero to Pushing Your First Application]
+** link:sessions/day_01/session_02/lab_02b/lab_02b_cf_service.adoc[Lab 02b - Binding to Cloud Foundry Services]
+** link:sessions/day_01/session_02/lab_02c/lab_02c_cf_scaling.adoc[Lab 02c - Scaling Applications]
+** link:sessions/day_01/session_02/lab_02d/lab_02d_cf_monitoring.adoc[Lab 02d - Monitoring Applications]
+
+==== OPTIONAL
+
+The following are not used in this one-day course.  Please feel free to investigate them in your own time.
+
+* Session 3
+** link:sessions/day_01/session_03/lab_03a/lab_03a_rest.adoc[Lab 03a - Build a Hypermedia-Driven RESTful Web Service with Spring Data REST]
+** link:sessions/day_01/session_03/lab_03b/lab_03b_service_binding.adoc[Lab 03b - Leveraging Spring Cloud Connectors for Service Binding]
+
+* Session 4
+** link:sessions/day_01/session_04/lab_04a/lab_04a_bounded_contexts.adoc[Lab 04a - Decomposition into microservices]
+
+* Session 5
+** link:sessions/day_01/session_05/lab_05a/lab_05a_quotes.adoc[Lab 05a - Build Quotes Service with MongoDB]
+** link:sessions/day_01/session_05/lab_05b/lab_05b_accounts.adoc[Lab 05b - Build Account Service using MySQL]
+** link:sessions/day_01/session_05/lab_05c/lab_05c_portfolio.adoc[Lab 05c - Build Portfolio Service with MySQL]
+
+==== AFTERNOON
+
+* Session 6
+** link:sessions/day_02/session_06/lab_06a/lab_06a_config_server.adoc[Lab 06a - Deploying and Using Spring Cloud Config Server]
+** link:sessions/day_02/session_06/lab_06b/lab_06b_discovery.adoc[Lab 06b - Leveraging Eureka for Service Discovery via Spring Cloud Netflix]
+
+* Session 7
+** link:sessions/day_02/session_07/lab_07a/lab_07a_load_balancing.adoc[Lab 07a - Client-Side Load Balancing with Ribbon]
+** link:sessions/day_02/session_07/lab_07b/lab_07b_feign.adoc[Lab 07b - Declarative REST Clients with Feign]
+** link:sessions/day_02/session_07/lab_07c/lab_07c_fault_tolerance.adoc[Lab 07c - Fault-Tolerance with Hystrix]
+** link:sessions/day_02/session_07/lab_07d/lab_07d_hystrix_dashboard.adoc[Lab 07d - Monitoring Circuit Breakers with Hystrix Dashboard]
+

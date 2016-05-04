@@ -1,0 +1,124 @@
+= Lab 08c - Consuming a Secured Resource from OAuth2-Aware Client 
+
+Now that we have secured a resource in lab 08b, we will create a simple restful oauth2-aware client that will securely invoke the resource.
+
+== Create a OAuth2-Aware Client
+
+. Add the following dependencies to your pom.xml
++
+[source,xml]
+----
+        <dependency>
+            <groupId>org.springframework.security.oauth</groupId>
+            <artifactId>spring-security-oauth2</artifactId>
+            <version>2.0.7.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-security</artifactId>
+        </dependency>
+----
+
+. Modify you application.yml, it should look like this:
++
+[source,yml]
+----
+server:
+    port: 8080
+    contextPath: /client
+
+security:
+    basic:
+        enabled: false
+
+config:
+    oauth2:
+        clientID: acme
+        clientSecret: acmesecret
+        accessTokenUri: http://localhost:9999/oauth/token
+        userAuthorizationUri: http://localhost:9999/oauth/authorize
+        resourceURI: http://localhost:9999/uaa/greeting             <1>
+----
+i) Set it to the location of your resource that you want to invoke securely   .
+
+. Modify the `ClientApplication` class to handle and use the oauth2 access token:
++
+[source,java]
+----
+@SpringBootApplication
+@EnableOAuth2Client        <1>
+public class ClientApplication extends SpringBootServletInitializer {
+
+    @Value("${config.oauth2.accessTokenUri}")
+    private String accessTokenUri;
+
+    @Value("${config.oauth2.userAuthorizationUri}")
+    private String userAuthorizationUri;
+
+    @Value("${config.oauth2.clientID}")
+    private String clientID;
+
+    @Value("${config.oauth2.clientSecret}")
+    private String clientSecret;
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+    
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(Application.class);
+    }
+
+    @Bean
+    public OAuth2RestOperations restTemplate(OAuth2ClientContext oauth2ClientContext) {
+        return new OAuth2RestTemplate(resource(), oauth2ClientContext);                  <2>
+    }
+
+    private OAuth2ProtectedResourceDetails resource() {
+        AuthorizationCodeResourceDetails resource = new AuthorizationCodeResourceDetails();
+        resource.setClientId(clientID);
+        resource.setClientSecret(clientSecret);
+        resource.setAccessTokenUri(accessTokenUri);
+        resource.setUserAuthorizationUri(userAuthorizationUri);                          <3>
+        resource.setScope(Arrays.asList("read"));
+        return resource;
+    }
+    
+}
+----
+i) This annotation enable configuration for an OAuth2 client in a web application that uses Spring Security and wants to use the Authorization Code Grant from one or more OAuth2 Authorization servers.
+
+ii) Rest template that is able to make OAuth2-authenticated REST requests with the credentials of the provided resource.
+
+iii) Details for an OAuth2-protected resource.
+
+
+. Write a rest controller class that uses the OAuth2RestOperations restTemplate to invoke the service.  
++
+[source,java]
+----
+@RestController
+class UserControler {
+
+    @Autowired
+    private OAuth2RestOperations restTemplate;
+
+    @Value("${config.oauth2.resourceURI}")
+    private String resourceURI;
+
+    @RequestMapping("/")
+    public String home() {
+      return restTemplate.getForObject(resourceURI, String.class);
+    }
+
+}
+----
+
+. Access the endpoint using a browser at `http://locahost:8080/client` and you get back a login screen. Enter 'mstine' and 'secret'. It will ask you to approve or deny the request. Click approve to view the resource.
+
+Now, you have secured resources and used a client to securely invoke it.

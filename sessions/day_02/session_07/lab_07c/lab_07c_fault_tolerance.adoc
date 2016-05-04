@@ -1,0 +1,137 @@
+= Lab 07c - Fault-Tolerance with Hystrix
+
+Estimated time to complete: 20 minutes
+[abstract]
+--
+Let's continue learning the components found in Spring Cloud to implement patterns for distributed systems.
+We'll again use Spring Cloud Netflix to implement client-side load balancing with Ribbon.
+However, this time we'll add an implementation of the Circuit Breaker pattern using Netflix Hystrix.
+
+In this lab, we'll do the following:
+
+. Refactor the consumer application from link:../../session_07/lab_07a/lab_07a_load_balancing.adoc[Lab 07a] to add a \ `ProducerClient`.
+. Test the new consumer version against our local pool of producers
+. Kill one of the producers and watch the consumer failover.
+. Kill the remaining producer and watch the circuit breaker fallback behavior.
+. Restart a producer and watch the consumer recover.
+--
+
+== Setup
+
+. You can just reuse the Eureka server and the 2 producers from Lab 07a as shown below:
+
+|=======
+|Eureka     |http://localhost:8761
+|Producer 1 |http://localhost:8080
+|Producer 2 |http://localhost:8082 
+|=======
+
+In case you did not have time to complete the lab 07a, you can run all 3 application instances from lab 07a's `complete` folder.
+
+
+. Ensure you have two instances of the producer service registered in Eureka (http://locahost:8761):
++
+image::../../../Common/images/ribbon_1.png[]
+
+== Using Hystrix
+
+NOTE: all the failover configuration is done on the `consumer` side (as opposed to the `producer` side. In case the `producer` fails, the `consumer` should know where to fall back to.
+
+
+. Inside your IDE, go into the `springtrader-consumer` project.
+
+. Open its `pom.xml` file and add the following dependency:
++
+[source,xml]
+----
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-hystrix</artifactId>
+</dependency>
+----
+
+. You now need to add the relevant configuration for your `Circuit Breaker`. We will rely on Spring Boot's default configuration.
++
+Inside the class `io.springtrader.consumer.SpringtraderConsumerApplication`, add the annotation `@EnableCircuitBreaker`.
+
+
+. Create the class `io.springtrader.consumer.ProducerClient` and into it paste the following code:
++
+[source,java]
+----
+@Component
+public class ProducerClient {
+
+    @Autowired
+    @LoadBalanced
+    RestTemplate restTemplate;
+
+    @HystrixCommand(fallbackMethod = "getProducerFallback")
+    public ProducerResponse getValue() {
+        return restTemplate.getForObject("http://producer", ProducerResponse.class);
+    }
+
+    public ProducerResponse getProducerFallback() {
+        ProducerResponse response = new ProducerResponse();
+        response.setValue(-1);
+        response.setServerPort(-1);
+        return response;
+    }
+}
+----
+
+. Refactor the class `io.springtrader.consumer.ConsumerController` to autowire the `ProducerClient` instead of `RestTemplate`, and then use it to obtain the `ProducerResponse`:
++
+[source,java]
+----
+@Autowired
+ProducerClient client;
+
+@RequestMapping(value = "/", produces = "application/json")
+String consume() {
+    ProducerResponse response = client.getValue();
+    return String.format("{\"value\":%d}", response.getValue());
+}
+----
+
+. Inside `src/main/resources/application.yml` add the following:
++
+----
+producer.ribbon.ServerListRefreshInterval: 5000
+----
+
+. Start the application by launching `SpringtraderConsumerApplication`
+
+In your logs, you should see that Hystrix has been loaded:
+```
+c.n.h.c.m.e.HystrixMetricsPoller         : Starting HystrixMetricsPoller
+ration$HystrixMetricsPollerConfiguration : Starting poller
+```
+
+
+. Test the consumer application on http://localhost:8091 and show that it is still receiving values from the producers.
+Also, watch the producers and observe that Ribbon is performing round robin load balancing across the two producers
+
+== Failover
+
+. Shut down one of the two producer processes.
+
+. reload url, test the consumer application and show that it is still receiving values from one of the producers.
++
+You may get the fallback value of `-1` a few times due to the lag in removing the failed instance from the Ribbon cache. Eventually it will converge to hitting the only remaining healthy instance.
+
+== Fallback
+
+. Shut down the remaining producer process.
+
+. Reload url, test the consumer application and show that it is only emitting the fallback value of `42`.
+
+== Recovery
+
+. Restart one of the producer processes. Wait for it to register with Eureka.
+
+. Reload url, test the consumer application and show that eventually recovers and starts hitting the new producer process. This can take several seconds as the Eureka and Ribbon caches repopulate.
+
+== Next Steps
+
+Do not shut anything down when you complete this lab. We will add one additional component in link:../../session_07/lab_07d/lab_07d_hystrix_dashboard.adoc[Lab 07d].

@@ -1,0 +1,32 @@
+api:
+  url:
+    company: http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input={name}
+    quote: http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol={symbol}
+
+
+pivotal:
+  summary:
+    quotes: 3
+    symbols:
+      it: EMC,ORCL,IBM,INTC,AMD,HPQ,CSCO,AAPL
+      fs: JPM,MS,BAC,GS,WFC,BK
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+---
+
+spring:
+  profiles: default
+  jpa:
+    database: H2
+
+---
+
+spring:
+  profiles: cloud
+  jpa:
+    database: MYSQL
